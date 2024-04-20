@@ -81,14 +81,14 @@ class App {
 		let rootFile;
 		let rootPath;
 		Array.from(fileMap).forEach(([path, file]) => {
-			if (file.name.match(/\.(gltf|glb)$/)) {
+			if (file.name.match(/\.(stl)$/)) {
 				rootFile = file;
 				rootPath = path.replace(file.name, '');
 			}
 		});
 
 		if (!rootFile) {
-			this.onError('No .gltf or .glb asset found.');
+			this.onError('Пожалуйста, используйте формат .stl');
 		}
 
 		this.view(rootFile, rootPath, fileMap);
