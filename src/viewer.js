@@ -1,6 +1,5 @@
 import {
 	AmbientLight,
-	AnimationMixer,
 	AxesHelper,
 	Box3,
 	Cache,
@@ -15,40 +14,23 @@ import {
 	PMREMGenerator,
 	PerspectiveCamera,
 	PointsMaterial,
-	REVISION,
 	Scene,
 	SkeletonHelper,
 	Vector3,
 	WebGLRenderer,
 	LinearToneMapping,
-	ACESFilmicToneMapping,
 } from 'three';
 import Stats from 'three/addons/libs/stats.module.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-
-import { GUI } from 'dat.gui';
 
 import { environments } from './environments.js';
 
 const DEFAULT_CAMERA = '[default]';
 
 const MANAGER = new LoadingManager();
-const THREE_PATH = `https://unpkg.com/three@0.${REVISION}.x`;
-const DRACO_LOADER = new DRACOLoader(MANAGER).setDecoderPath(
-	`${THREE_PATH}/examples/jsm/libs/draco/gltf/`,
-);
-const KTX2_LOADER = new KTX2Loader(MANAGER).setTranscoderPath(
-	`${THREE_PATH}/examples/jsm/libs/basis/`,
-);
-
-const IS_IOS = isIOS();
 
 const Preset = { ASSET_GENERATOR: 'assetgenerator' };
 
@@ -61,9 +43,6 @@ export class Viewer {
 
 		this.lights = [];
 		this.content = null;
-		this.mixer = null;
-		this.clips = [];
-		this.gui = null;
 
 		this.state = {
 			environment:
@@ -135,8 +114,6 @@ export class Viewer {
 		this.axesHelper = null;
 
 		this.addAxesHelper();
-		// this.addGUI();
-		// if (options.kiosk) this.gui.close();
 
 		this.animate = this.animate.bind(this);
 		requestAnimationFrame(this.animate);
@@ -150,7 +127,6 @@ export class Viewer {
 
 		this.controls.update();
 		this.stats.update();
-		this.mixer && this.mixer.update(dt);
 		this.render();
 
 		this.prevTime = time;
@@ -180,34 +156,23 @@ export class Viewer {
 	load(url, rootPath, assetMap) {
 		const baseURL = LoaderUtils.extractUrlBase(url);
 
-		// Load.
 		return new Promise((resolve, reject) => {
-			// Intercept and override relative URLs.
 			MANAGER.setURLModifier((url, path) => {
-				// URIs in a glTF file may be escaped, or not. Assume that assetMap is
-				// from an un-escaped source, and decode all URIs before lookups.
-				// See: https://github.com/donmccurdy/three-gltf-viewer/issues/146
-				const normalizedURL =
-					rootPath +
-					decodeURI(url)
-						.replace(baseURL, '')
-						.replace(/^(\.?\/)/, '');
+				// const normalizedURL =
+				// 	rootPath +
+				// 	decodeURI(url)
+				// 		.replace(baseURL, '')
+				// 		.replace(/^(\.?\/)/, '');
 
-				if (assetMap.has(normalizedURL)) {
-					const blob = assetMap.get(normalizedURL);
-					const blobURL = URL.createObjectURL(blob);
-					blobURLs.push(blobURL);
-					return blobURL;
-				}
+				// const blobURL = URL.createObjectURL(normalizedURL);
+				// blobURLs.push(blobURL);
+				// return blobURL;
 
 				return (path || '') + url;
 			});
 
 			const loader = new STLLoader(MANAGER)
-				// .setCrossOrigin('anonymous')
-				// .setDRACOLoader(DRACO_LOADER)
-				// .setKTX2Loader(KTX2_LOADER.detectSupport(this.renderer))
-				// .setMeshoptDecoder(MeshoptDecoder);
+				.setCrossOrigin('anonymous')
 
 			const blobURLs = [];
 
@@ -217,9 +182,9 @@ export class Viewer {
 					window.VIEWER.json = geometry;
 
 					const material = new MeshPhysicalMaterial({
-						color: 0xb2ffc8,
+						color: 0xffffff,
 						envMap: null,
-						metalness: 0.25,
+						metalness: 0.1,
 						roughness: 0.1,
 						opacity: 1.0,
 						transparent: true,
@@ -228,39 +193,26 @@ export class Viewer {
 						clearcoatRoughness: 0.25,
 					})
 					const mesh = new Mesh(geometry, material)
-					// scene.add(mesh)
+					this.scene.add(mesh)
 
-					// const scene = gltf.scene || gltf.scenes[0];
-					// const clips = gltf.animations || [];
-
-					// if (!scene) {
-					// 	// Valid, but not supported by this viewer.
-					// 	throw new Error(
-					// 		'This model contains no scene, and cannot be viewed here. However,' +
-					// 			' it may contain individual 3D resources.',
-					// 	);
-					// }
-
-					this.setContent(mesh, []);
-
+					this.setContent(mesh);
 					blobURLs.forEach(URL.revokeObjectURL);
-
-					// See: https://github.com/google/draco/issues/349
-					// DRACOLoader.releaseDecoderModule();
-
 					resolve(geometry);
 				},
-				undefined,
-				reject,
+				(xhr) => {
+					console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+				},
+				(error) => {
+					console.log(error)
+				}
 			);
 		});
 	}
 
 	/**
 	 * @param {THREE.Object3D} object
-	 * @param {Array<THREE.AnimationClip} clips
 	 */
-	setContent(object, clips) {
+	setContent(object) {
 		this.clear();
 
 		object.updateMatrixWorld(); // donmccurdy/three-gltf-viewer#330
@@ -314,8 +266,6 @@ export class Viewer {
 			}
 		});
 
-		this.setClips(clips);
-
 		this.updateLights();
 		this.updateEnvironment();
 		this.updateDisplay();
@@ -331,28 +281,6 @@ export class Viewer {
 		console.groupEnd();
 	}
 
-	/**
-	 * @param {Array<THREE.AnimationClip} clips
-	 */
-	setClips(clips) {
-		if (this.mixer) {
-			this.mixer.stopAllAction();
-			this.mixer.uncacheRoot(this.mixer.getRoot());
-			this.mixer = null;
-		}
-
-		this.clips = clips;
-		if (!clips.length) return;
-
-		this.mixer = new AnimationMixer(this.content);
-	}
-
-	playAllClips() {
-		this.clips.forEach((clip) => {
-			this.mixer.clipAction(clip).reset().play();
-			this.state.actionStates[clip.name] = true;
-		});
-	}
 
 	/**
 	 * @param {string} name
@@ -532,7 +460,7 @@ export class Viewer {
 		this.axesDiv.appendChild(this.axesRenderer.domElement);
 	}
 
-	
+
 
 
 	clear() {
