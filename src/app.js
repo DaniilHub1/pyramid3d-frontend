@@ -1,6 +1,5 @@
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import { Viewer } from './viewer.js';
-import { SimpleDropzone } from 'simple-dropzone';
 import { Validator } from './validator.js';
 import { Footer } from './components/footer';
 import queryString from 'query-string';
@@ -21,7 +20,6 @@ class App {
 	constructor(el, location) {
 		const hash = location.hash ? queryString.parse(location.hash) : {};
 		this.options = {
-			kiosk: Boolean(hash.kiosk),
 			model: hash.model || '',
 			preset: hash.preset || '',
 			cameraPosition: hash.cameraPosition ? hash.cameraPosition.split(',').map(Number) : null,
@@ -35,29 +33,13 @@ class App {
 		this.inputEl = el.querySelector('#file-input');
 		this.validator = new Validator(el);
 
-		this.createDropzone();
 		this.hideSpinner();
 
 		const options = this.options;
 
-		if (options.kiosk) {
-			const headerEl = document.querySelector('header');
-			headerEl.style.display = 'none';
-		}
-
 		if (options.model) {
 			this.view(options.model, '', new Map());
 		}
-	}
-
-	/**
-	 * Sets up the drag-and-drop controller.
-	 */
-	createDropzone() {
-		const dropCtrl = new SimpleDropzone(this.dropEl, this.inputEl);
-		dropCtrl.on('drop', ({ files }) => this.load(files));
-		dropCtrl.on('dropstart', () => this.showSpinner());
-		dropCtrl.on('droperror', () => this.hideSpinner());
 	}
 
 	/**
@@ -118,9 +100,7 @@ class App {
 			.then((gltf) => {
 				// TODO: GLTFLoader parsing can fail on invalid files. Ideally,
 				// we could run the validator either way.
-				if (!this.options.kiosk) {
-					this.validator.validate(fileURL, rootPath, fileMap, gltf);
-				}
+				this.validator.validate(fileURL, rootPath, fileMap, gltf);
 				cleanup();
 			});
 	}

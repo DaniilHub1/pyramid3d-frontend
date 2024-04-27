@@ -33,8 +33,6 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-import { GUI } from 'dat.gui';
-
 import { environments } from './environments.js';
 
 const DEFAULT_CAMERA = '[default]';
@@ -63,7 +61,6 @@ export class Viewer {
 		this.content = null;
 		this.mixer = null;
 		this.clips = [];
-		this.gui = null;
 
 		this.state = {
 			environment:
@@ -135,8 +132,6 @@ export class Viewer {
 		this.axesHelper = null;
 
 		this.addAxesHelper();
-		// this.addGUI();
-		// if (options.kiosk) this.gui.close();
 
 		this.animate = this.animate.bind(this);
 		requestAnimationFrame(this.animate);
