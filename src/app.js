@@ -1,6 +1,5 @@
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import { Viewer } from './viewer.js';
-import { Validator } from './validator.js';
 import { Footer } from './components/footer';
 import queryString from 'query-string';
 
@@ -31,8 +30,8 @@ class App {
 		this.spinnerEl = el.querySelector('.spinner');
 		this.dropEl = el.querySelector('.dropzone');
 		this.inputEl = el.querySelector('#file-input');
-		this.validator = new Validator(el);
 
+		this.inputEl.addEventListener('change', () => this.load(this.inputEl.files[0]))
 		this.hideSpinner();
 
 		const options = this.options;
@@ -57,51 +56,40 @@ class App {
 
 	/**
 	 * Loads a fileset provided by user action.
-	 * @param  {Map<string, File>} fileMap
+	 * @param  {File} file
 	 */
-	load(fileMap) {
+	load(file) {
 		let rootFile;
-		let rootPath;
-		Array.from(fileMap).forEach(([path, file]) => {
-			if (file.name.match(/\.(stl)$/)) {
-				rootFile = file;
-				rootPath = path.replace(file.name, '');
-			}
-		});
 
-		if (!rootFile) {
+		if (file.name.match(/\.stl$/)) {
+			rootFile = file;
+		} else {
 			this.onError('Пожалуйста, используйте формат .stl');
 		}
 
-		this.view(rootFile, rootPath, fileMap);
+		this.view(rootFile, file);
 	}
 
 	/**
 	 * Passes a model to the viewer, given file and resources.
 	 * @param  {File|string} rootFile
 	 * @param  {string} rootPath
-	 * @param  {Map<string, File>} fileMap
+	 * @param  {file} file
 	 */
-	view(rootFile, rootPath, fileMap) {
+	view(rootFile, file) {
 		if (this.viewer) this.viewer.clear();
 
 		const viewer = this.viewer || this.createViewer();
 
 		const fileURL = typeof rootFile === 'string' ? rootFile : URL.createObjectURL(rootFile);
-
-		const cleanup = () => {
-			this.hideSpinner();
-			if (typeof rootFile === 'object') URL.revokeObjectURL(fileURL);
-		};
+		const rootPath =  "localhost:3000"
 
 		viewer
-			.load(fileURL, rootPath, fileMap)
+			.load(fileURL, rootPath, file)
 			.catch((e) => this.onError(e))
-			.then((gltf) => {
-				// TODO: GLTFLoader parsing can fail on invalid files. Ideally,
-				// we could run the validator either way.
-				this.validator.validate(fileURL, rootPath, fileMap, gltf);
-				cleanup();
+			.then((stl) => {
+				this.hideSpinner();
+				if (typeof rootFile === 'object') URL.revokeObjectURL(fileURL);
 			});
 	}
 
@@ -134,8 +122,6 @@ document.body.innerHTML += Footer();
 
 document.addEventListener('DOMContentLoaded', () => {
 	const app = new App(document.body, location);
-
 	window.VIEWER.app = app;
-
-	console.info('[glTF Viewer] Debugging data exported as `window.VIEWER`.');
+	console.info(app);
 });
