@@ -38,6 +38,7 @@ class App {
 		if (options.model) {
 			this.view(options.model, '', new Map());
 		}
+
 	}
 
 	/**
@@ -50,6 +51,13 @@ class App {
 		this.dropEl.innerHTML = '';
 		this.dropEl.appendChild(this.viewerEl);
 		this.viewer = new Viewer(this.viewerEl, this.options);
+
+		this.viewerEl.addEventListener('mousewheel', (ev) => {
+			console.log(ev)
+			ev.preventDefault(); 
+			ev.stopImmediatePropagation()
+		})
+
 		return this.viewer;
 	}
 

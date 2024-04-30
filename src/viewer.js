@@ -27,6 +27,7 @@ import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 import { environments } from './environments.js';
+import { max, min } from 'three/examples/jsm/nodes/Nodes.js';
 
 const DEFAULT_CAMERA = '[default]';
 
@@ -99,6 +100,8 @@ export class Viewer {
 		this.neutralEnvironment = this.pmremGenerator.fromScene(new RoomEnvironment()).texture;
 
 		this.controls = new OrbitControls(this.defaultCamera, this.renderer.domElement);
+		this.controls.maxAzimuthAngle = Math.PI;
+		this.controls.minAzimuthAngle = Math.PI;
 		this.controls.screenSpacePanning = true;
 
 		this.el.appendChild(this.renderer.domElement);
@@ -158,16 +161,6 @@ export class Viewer {
 
 		return new Promise((resolve, reject) => {
 			MANAGER.setURLModifier((url, path) => {
-				// const normalizedURL =
-				// 	rootPath +
-				// 	decodeURI(url)
-				// 		.replace(baseURL, '')
-				// 		.replace(/^(\.?\/)/, '');
-
-				// const blobURL = URL.createObjectURL(normalizedURL);
-				// blobURLs.push(blobURL);
-				// return blobURL;
-
 				return (path || '') + url;
 			});
 
@@ -218,9 +211,9 @@ export class Viewer {
 		object.updateMatrixWorld(); // donmccurdy/three-gltf-viewer#330
 
 		const box = new Box3().setFromObject(object);
+		console.log(box);
 		const size = box.getSize(new Vector3()).length();
 		const center = box.getCenter(new Vector3());
-
 		this.controls.reset();
 
 		object.position.x -= center.x;
@@ -239,8 +232,8 @@ export class Viewer {
 		} else {
 			this.defaultCamera.position.copy(center);
 			this.defaultCamera.position.x += size / 2.0;
-			this.defaultCamera.position.y += size / 5.0;
-			this.defaultCamera.position.z += size / 2.0;
+			this.defaultCamera.position.y += size / 2.0;
+			this.defaultCamera.position.z += size / 1.3;
 			this.defaultCamera.lookAt(center);
 		}
 
@@ -256,7 +249,7 @@ export class Viewer {
 		this.controls.saveState();
 
 		this.scene.add(object);
-		this.content = object;
+		this.content = object;	
 
 		this.state.punctualLights = true;
 
@@ -286,17 +279,9 @@ export class Viewer {
 	 * @param {string} name
 	 */
 	setCamera(name) {
-		if (name === DEFAULT_CAMERA) {
-			this.controls.enabled = true;
-			this.activeCamera = this.defaultCamera;
-		} else {
-			this.controls.enabled = false;
-			this.content.traverse((node) => {
-				if (node.isCamera && node.name === name) {
-					this.activeCamera = node;
-				}
-			});
-		}
+		this.controls.enabled = true;
+		this.activeCamera = this.defaultCamera;
+		this.controls.enableZoom = false;
 	}
 
 	updateLights() {
@@ -492,15 +477,4 @@ function traverseMaterials(object, callback) {
 		const materials = Array.isArray(node.material) ? node.material : [node.material];
 		materials.forEach(callback);
 	});
-}
-
-// https://stackoverflow.com/a/9039885/1314762
-function isIOS() {
-	return (
-		['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(
-			navigator.platform,
-		) ||
-		// iPad on iOS 13 detection
-		(navigator.userAgent.includes('Mac') && 'ontouchend' in document)
-	);
 }
