@@ -1,6 +1,5 @@
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import { Viewer } from './viewer.js';
-import queryString from 'query-string';
 
 window.VIEWER = {};
 
@@ -15,50 +14,20 @@ class App {
 	 * @param  {Element} el
 	 * @param  {Location} location
 	 */
-	constructor(el, location) {
-		const hash = location.hash ? queryString.parse(location.hash) : {};
-		this.options = {
-			model: hash.model || '',
-			preset: hash.preset || '',
-			cameraPosition: hash.cameraPosition ? hash.cameraPosition.split(',').map(Number) : null,
-		};
-
+	constructor(el) {
 		this.el = el;
 		this.viewer = null;
-		this.viewerEl = null;
+
+		this.viewerEl = el.querySelector('.viewer');
+		this.reloadEl = el.querySelector('.reload');
+		this.statsEl = el.querySelector('.stats');
 		this.spinnerEl = el.querySelector('.spinner');
 		this.dropEl = el.querySelector('.dropzone');
 		this.inputEl = el.querySelector('#file-input');
 
-		this.inputEl.addEventListener('change', () => this.load(this.inputEl.files[0]))
-		this.hideSpinner();
+		this.state = 'drop';
 
-		const options = this.options;
-
-		if (options.model) {
-			this.view(options.model, '', new Map());
-		}
-
-	}
-
-	/**
-	 * Sets up the view manager.
-	 * @return {Viewer}
-	 */
-	createViewer() {
-		this.viewerEl = document.createElement('div');
-		this.viewerEl.classList.add('viewer');
-		this.dropEl.innerHTML = '';
-		this.dropEl.appendChild(this.viewerEl);
-		this.viewer = new Viewer(this.viewerEl, this.options);
-
-		this.viewerEl.addEventListener('mousewheel', (ev) => {
-			console.log(ev)
-			ev.preventDefault(); 
-			ev.stopImmediatePropagation()
-		})
-
-		return this.viewer;
+		this.inputEl.addEventListener('change', () => this.load(this.inputEl.files[0]));
 	}
 
 	/**
@@ -86,16 +55,29 @@ class App {
 	view(rootFile, file) {
 		if (this.viewer) this.viewer.clear();
 
-		const viewer = this.viewer || this.createViewer();
+		if (!this.viewer) {
+			this.viewer = new Viewer(this.viewerEl);
+		}
+
+		this.reloadEl.addEventListener('click', () => {
+			this.state = 'drop';
+			this.viewer.clear();
+		});
+
+		this.dropEl.classList.add('hidden');
+		this.showSpinner();
 
 		const fileURL = typeof rootFile === 'string' ? rootFile : URL.createObjectURL(rootFile);
-		const rootPath =  "localhost:3000"
+		const rootPath = 'localhost:3000';
 
-		viewer
+		this.viewer
 			.load(fileURL, rootPath, file)
 			.catch((e) => this.onError(e))
-			.then((stl) => {
+			.then(() => {
 				this.hideSpinner();
+				this.viewerEl.classList.remove('hidden');
+				this.reloadEl.classList.remove('hidden');
+				this.statsEl.classList.remove('hidden');
 				if (typeof rootFile === 'object') URL.revokeObjectURL(fileURL);
 			});
 	}
@@ -109,19 +91,17 @@ class App {
 			message = 'Unable to retrieve this file. Check JS console and browser network tab.';
 		} else if (message.match(/Unexpected token/)) {
 			message = `Unable to parse file content. Verify that this file is valid. Error: "${message}"`;
-		} else if (error && error.target && error.target instanceof Image) {
-			message = 'Missing texture: ' + error.target.src.split('/').pop();
 		}
-		window.alert(message);
+		window.alert(message); // TODO: move to popup
 		console.error(error);
 	}
 
 	showSpinner() {
-		this.spinnerEl.style.display = '';
+		this.spinnerEl.classList.remove('hidden');
 	}
 
 	hideSpinner() {
-		this.spinnerEl.style.display = 'none';
+		this.spinnerEl.classList.add('hidden');
 	}
 }
 

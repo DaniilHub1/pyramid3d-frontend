@@ -14,6 +14,11 @@
 	<script defer type="module" src="src/app.js"></script>
 </head>
 <body>
+	<header>
+		<button class="reload hidden" type="button" aria-label="reload">
+			<img src="./src/assets/reloadIcon.svg" alt="reload icon" class="reload__image" />
+		</button>
+	</header>
 	<main class="wrap">
 		<div class="dropzone">
 			<div class="upload-btn">
@@ -24,15 +29,16 @@
 				</label>
 			</div>
 		</div>
-		<div class="spinner"></div>
+		<div class="viewer hidden"></div>
+		<div class="spinner hidden"></div>
 	</main>
-	<footer>
-		<span class="item"> Ширина </span>
-		<span class="separator" aria-hidden="true"> | </span>
-		<span class="item"> Высота </span>
-		<span class="separator" aria-hidden="true"> | </span>
-		<span class="item"> Глубина </span>
-		<span class="separator" aria-hidden="true"> | </span>
-		<span class="item"> Объем </span>
+	<footer class="stats hidden">
+		<span class="stats__item"> Ширина </span>
+		<span class="stats__separator" aria-hidden="true"> | </span>
+		<span class="stats__item"> Высота </span>
+		<span class="stats__separator" aria-hidden="true"> | </span>
+		<span class="stats__item"> Глубина </span>
+		<span class="stats__separator" aria-hidden="true"> | </span>
+		<span class="stats__item"> Объем </span>
 	</footer>
 </body>

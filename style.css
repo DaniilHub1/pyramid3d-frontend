@@ -25,6 +25,10 @@ body {
 	position: relative;
 }
 
+.hidden {
+	visibility: hidden;
+}
+
 .wrap {
 	display: flex;
 	width: 100%;
@@ -50,23 +54,35 @@ body {
 	z-index: 0;
 }
 
-.axes {
-	width: 100px;
-	height: 100px;
-	margin: 20px;
-	padding: 0px;
+/******************************************************************************
+ * Reload
+ */
+
+.reload {
 	position: absolute;
-	left: 0px;
-	bottom: 0px;
+	right: 20px;
+	top: 20px;
+	transform: translate(-50%, 0%);
+	padding: 4px;
+	appearance: none;
+	border-color: transparent;
+	background-color: transparent;
+	border-radius: 50%;
+	cursor: pointer;
 	z-index: 10;
-	pointer-events: none;
+}
+
+.reload__image {
+	width: 24px;
+	height: auto;
+	transform: scale(0.85);
 }
 
 /******************************************************************************
- * Footer
+ * Stats
  */
 
-footer {
+.stats {
 	position: absolute;
 	width: 100%;
 	display: flex;
@@ -78,12 +94,12 @@ footer {
 	color: #fff;
 }
 
-footer .item {
+.stats__item {
 	color: inherit;
 	opacity: 0.7;
 }
 
-footer .separator {
+.stats__separator {
 	margin: 0 0.5em;
 	opacity: 0.2;
 }
