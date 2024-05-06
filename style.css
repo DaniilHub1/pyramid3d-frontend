@@ -83,13 +83,10 @@ body {
  */
 
 .stats {
-	position: absolute;
 	width: 100%;
 	display: flex;
 	justify-content: center;
-	gap: 0.5em;
-	bottom: 0.5em;
-	left: 0;
+	gap: 0.75em;
 	font-family: monospace;
 	color: #fff;
 }
@@ -100,7 +97,6 @@ body {
 }
 
 .stats__separator {
-	margin: 0 0.5em;
 	opacity: 0.2;
 }
 
