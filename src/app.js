@@ -1,4 +1,5 @@
 import WebGL from 'three/addons/capabilities/WebGL.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { Viewer } from './viewer.js';
 
 window.VIEWER = {};
@@ -17,6 +18,7 @@ class App {
 	constructor(el) {
 		this.el = el;
 		this.viewer = null;
+		this.loader = new STLLoader().setCrossOrigin('anonymous');
 
 		this.viewerEl = el.querySelector('.viewer');
 		this.reloadEl = el.querySelector('.reload');
@@ -27,7 +29,13 @@ class App {
 
 		this.state = 'drop';
 
-		this.inputEl.addEventListener('change', () => this.load(this.inputEl.files[0]));
+		this.inputEl.addEventListener('change', () => {
+			this.load(this.inputEl.files[0])
+				.then((geometry) => {
+					this.view(geometry);
+				})
+				.catch((error) => this.onError(error));
+		});
 	}
 
 	/**
@@ -35,24 +43,32 @@ class App {
 	 * @param  {File} file
 	 */
 	load(file) {
-		let rootFile;
+		return new Promise((resolve, reject) => {
+			const fileURL = typeof file === 'string' ? file : URL.createObjectURL(file);
+			const rootPath = 'localhost:3000';
 
-		if (file.name.match(/\.stl$/)) {
-			rootFile = file;
-		} else {
-			this.onError('Пожалуйста, используйте формат .stl');
-		}
+			if (!file.name.match(/\.stl$/)) {
+				reject('Пожалуйста, используйте формат .stl');
+			}
 
-		this.view(rootFile, file);
+			this.loader.load(
+				fileURL,
+				(geometry) => {
+					if (typeof fileURL === 'object') URL.revokeObjectURL(fileURL);
+					resolve(geometry);
+				},
+				(xhr) => {
+					console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+				},
+				(error) => {
+					console.log(error);
+					reject(error);
+				},
+			);
+		});
 	}
 
-	/**
-	 * Passes a model to the viewer, given file and resources.
-	 * @param  {File|string} rootFile
-	 * @param  {string} rootPath
-	 * @param  {file} file
-	 */
-	view(rootFile, file) {
+	view(geometry) {
 		if (this.viewer) this.viewer.clear();
 
 		if (!this.viewer) {
@@ -67,19 +83,13 @@ class App {
 		this.dropEl.classList.add('hidden');
 		this.showSpinner();
 
-		const fileURL = typeof rootFile === 'string' ? rootFile : URL.createObjectURL(rootFile);
-		const rootPath = 'localhost:3000';
+		this.hideSpinner();
+		this.viewerEl.classList.remove('hidden');
+		this.reloadEl.classList.remove('hidden');
 
-		this.viewer
-			.load(fileURL, rootPath, file)
-			.catch((e) => this.onError(e))
-			.then(() => {
-				this.hideSpinner();
-				this.viewerEl.classList.remove('hidden');
-				this.reloadEl.classList.remove('hidden');
-				this.statsEl.classList.remove('hidden');
-				if (typeof rootFile === 'object') URL.revokeObjectURL(fileURL);
-			});
+		this.viewer.view(geometry);
+
+		this.showStats();
 	}
 
 	/**
@@ -94,6 +104,24 @@ class App {
 		}
 		window.alert(message); // TODO: move to popup
 		console.error(error);
+	}
+
+	showStats() {
+		const widthEl = this.statsEl.querySelector('.stats__item--width');
+		const heightEl = this.statsEl.querySelector('.stats__item--height');
+		const lengthEl = this.statsEl.querySelector('.stats__item--length');
+		const volumeEl = this.statsEl.querySelector('.stats__item--volume');
+
+		widthEl.textContent = this.viewer.sizes.width.toFixed(2);
+		heightEl.textContent = this.viewer.sizes.height.toFixed(2);
+		lengthEl.textContent = this.viewer.sizes.length.toFixed(2);
+		volumeEl.textContent = (
+			this.viewer.sizes.height *
+			this.viewer.sizes.length *
+			this.viewer.sizes.width
+		).toFixed(1);
+
+		this.statsEl.classList.remove('hidden');
 	}
 
 	showSpinner() {
