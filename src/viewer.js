@@ -131,9 +131,10 @@ export class Viewer {
 
 	#setLights() {
 		const { color, intensity, position } = settings.directLight;
+		const [posX, posY, posZ] = position;
 
 		const directLight = new DirectionalLight(color, intensity);
-		directLight.position.set(...position);
+		directLight.position.set(posX, posY, posZ);
 		this.camera.add(directLight);
 
 		this.scene.add(new HemisphereLight());
