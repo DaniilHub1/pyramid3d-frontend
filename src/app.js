@@ -2,12 +2,12 @@ import { Viewer, Loader } from './stl';
 import { UI } from './ui.js';
 
 class App {
-	constructor(el) {
-		this.ui = new UI(el);
+	constructor(rootEl) {
+		this.ui = new UI(rootEl);
 		this.viewer = new Viewer(this.ui.viewerEl);
 		this.loader = new Loader();
 
-		this.ui.reloadEl.addEventListener('click', () => {
+		this.ui.resetEl.addEventListener('click', () => {
 			this.viewer.clear();
 			this.ui.set('reset');
 		});

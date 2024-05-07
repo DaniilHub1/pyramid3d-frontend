@@ -3,7 +3,7 @@ export class UI {
 		this.rootEl = rootEl;
 
 		this.viewerEl = rootEl.querySelector('.viewer');
-		this.reloadEl = rootEl.querySelector('.reload');
+		this.resetEl = rootEl.querySelector('.reset');
 		this.inputEl = rootEl.querySelector('#file-input');
 
 		this.spinnerEl = rootEl.querySelector('.spinner');
@@ -30,9 +30,9 @@ export class UI {
 	set(action, message) {
 		if (action === 'view') {
 			this.#hide(this.spinnerEl);
-			this.#show(this.viewerEl, this.reloadEl, this.statsEl.wrapper);
+			this.#show(this.viewerEl, this.resetEl, this.statsEl.wrapper);
 		} else if (action === 'reset') {
-			this.#hide(this.statsEl.wrapper, this.reloadEl);
+			this.#hide(this.statsEl.wrapper, this.resetEl);
 			this.#show(this.uploadEl);
 		} else if (action === 'upload') {
 			this.#hide(this.uploadEl);
