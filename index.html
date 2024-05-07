@@ -20,14 +20,12 @@
 		</button>
 	</header>
 	<main class="wrap">
-		<div class="dropzone">
-			<div class="upload-btn">
-				<input type="file" name="file-input[]" id="file-input" />
-				<label for="file-input">
-					<img src="./src/assets/uploadIcon.svg" alt="upload icon" />
-					<span>Загрузить модель STL</span>
-				</label>
-			</div>
+		<div class="upload">
+			<input class="upload__input" type="file" name="file-input[]" id="file-input" />
+			<label class="upload__label" for="file-input">
+				<img class="upload__image" src="./src/assets/uploadIcon.svg" alt="upload icon" />
+				<span class="upload__text">Загрузить модель STL</span>
+			</label>
 		</div>
 		<div class="viewer hidden"></div>
 		<div class="spinner hidden"></div>

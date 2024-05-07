@@ -10,7 +10,7 @@ class App {
 		this.reloadEl = el.querySelector('.reload');
 		this.statsEl = el.querySelector('.stats');
 		this.spinnerEl = el.querySelector('.spinner');
-		this.dropEl = el.querySelector('.dropzone');
+		this.uploadEl = el.querySelector('.upload');
 		this.inputEl = el.querySelector('#file-input');
 
 		this.viewer = new Viewer(this.viewerEl);
@@ -18,10 +18,13 @@ class App {
 
 		this.reloadEl.addEventListener('click', () => {
 			this.viewer.clear();
+			this.statsEl.classList.add('hidden');
+			this.reloadEl.classList.add('hidden');
+			this.uploadEl.classList.remove('hidden');
 		});
 
 		this.inputEl.addEventListener('change', () => {
-			this.dropEl.classList.add('hidden');
+			this.uploadEl.classList.add('hidden');
 			this.showSpinner();
 
 			this.load(this.inputEl.files[0])

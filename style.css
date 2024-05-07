@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400..500&display=swap');
 
+* {
+	box-sizing: border-box;
+}
+
 html,
 body {
 	margin: 0;
@@ -10,10 +14,6 @@ body {
 	height: 100%;
 	max-width: 400px;
 	max-height: 400px;
-}
-
-* {
-	box-sizing: border-box;
 }
 
 body {
@@ -34,14 +34,6 @@ body {
 	width: 100%;
 	position: relative;
 	flex-grow: 1;
-}
-
-.dropzone {
-	display: flex;
-	flex-grow: 1;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
 }
 
 .viewer {
@@ -103,14 +95,19 @@ body {
 /******************************************************************************
  * Upload Button
  *
- * https://tympanus.net/Tutorials/CustomFileInputs/
  */
 
-.upload-btn {
+.upload {
+	z-index: 10;
 	margin-top: 2em;
+
+	display: flex;
+	flex-grow: 1;
+	justify-content: center;
+	align-items: center;
 }
 
-.upload-btn input {
+.upload__input {
 	width: 0.1px;
 	height: 0.1px;
 	opacity: 0;
@@ -119,31 +116,27 @@ body {
 	z-index: -1;
 }
 
-.upload-btn label {
+.upload__label {
 	color: #808080;
-	border: 0;
+
 	border-radius: 3px;
 	transition: ease 0.2s background;
-	font-size: 1rem;
+
 	font-weight: 700;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+
 	cursor: pointer;
-	display: inline-block;
-	overflow: hidden;
+	display: flex;
+	gap: 0.5em;
+
 	padding: 0.625rem 1.25rem;
 }
 
-.upload-btn label:hover {
+.upload__label:hover {
 	background: #252525;
 }
 
-.upload-btn img {
-	width: 1em;
+.upload__image {
 	height: 1em;
-	vertical-align: middle;
-	margin-top: -0.25em;
-	margin-right: 0.25em;
 }
 
 /******************************************************************************
