@@ -52,9 +52,9 @@ body {
 
 .reload {
 	position: absolute;
-	right: 20px;
-	top: 20px;
-	transform: translate(-50%, 0%);
+	right: 1.5em;
+	top: 1.5em;
+	/* transform: translate(-50%, 0%); */
 	padding: 4px;
 	appearance: none;
 	border-color: transparent;
@@ -75,6 +75,8 @@ body {
  */
 
 .stats {
+	position: absolute;
+	bottom: 1.5em;
 	width: 100%;
 	display: flex;
 	justify-content: center;
@@ -99,7 +101,6 @@ body {
 
 .upload {
 	z-index: 10;
-	margin-top: 2em;
 
 	display: flex;
 	flex-grow: 1;
@@ -108,10 +109,7 @@ body {
 }
 
 .upload__input {
-	width: 0.1px;
-	height: 0.1px;
 	opacity: 0;
-	overflow: hidden;
 	position: absolute;
 	z-index: -1;
 }
