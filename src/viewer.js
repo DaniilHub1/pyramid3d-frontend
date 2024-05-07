@@ -13,6 +13,7 @@ import {
 } from 'three';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { settings } from './settings';
 
 Cache.enabled = true;
 
@@ -22,18 +23,10 @@ export class Viewer {
 
 		this.content = null;
 
-		this.prevTime = 0;
-
 		this.scene = new Scene();
-		this.scene.background = new Color('#191919');
+		this.scene.background = new Color(settings.background);
 
-		this.material = new MeshPhysicalMaterial({
-			color: 0xeeeeee,
-			metalness: 0.1,
-			roughness: 0.6,
-			clearcoat: 0.6,
-			clearcoatRoughness: 0.4,
-		});
+		this.material = new MeshPhysicalMaterial(settings.material);
 
 		this.camera = this.#createCamera();
 		this.scene.add(this.camera);
@@ -44,14 +37,15 @@ export class Viewer {
 		this.controls = this.#createControls();
 
 		this.animate = this.animate.bind(this);
+		this.prevTime = 0;
 		requestAnimationFrame(this.animate);
 	}
 
 	#createCamera() {
-		const fov = (1 * 180) / Math.PI;
+		const { fov, near, far } = settings.camera;
 		const aspect = this.el.clientWidth / this.el.clientHeight;
 
-		return new PerspectiveCamera(fov, aspect, 0.01, 1000);
+		return new PerspectiveCamera(fov, aspect, near, far);
 	}
 
 	#createRenderer() {
@@ -109,6 +103,8 @@ export class Viewer {
 			width: box.max.y - box.min.y,
 			height: box.max.z - box.min.z,
 		};
+
+		this.sizes.volume = this.sizes.length * this.sizes.width * this.sizes.height;
 	}
 
 	#setPosition() {
@@ -134,11 +130,13 @@ export class Viewer {
 	}
 
 	#setLights() {
-		this.scene.add(new HemisphereLight());
+		const { color, intensity, position } = settings.directLight;
 
-		const directLight = new DirectionalLight('#FFFFFF', 0.8 * Math.PI);
-		directLight.position.set(0.5, 0, 0.866); // ~60º
+		const directLight = new DirectionalLight(color, intensity);
+		directLight.position.set(...position);
 		this.camera.add(directLight);
+
+		this.scene.add(new HemisphereLight());
 	}
 
 	clear() {

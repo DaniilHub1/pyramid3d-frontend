@@ -2,23 +2,9 @@ import WebGL from 'three/addons/capabilities/WebGL.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { Viewer } from './viewer.js';
 
-window.VIEWER = {};
-
-if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
-	console.error('The File APIs are not fully supported in this browser.');
-} else if (!WebGL.isWebGLAvailable()) {
-	console.error('WebGL is not supported in this browser.');
-}
-
 class App {
-	/**
-	 * @param  {Element} el
-	 * @param  {Location} location
-	 */
 	constructor(el) {
 		this.el = el;
-		this.viewer = null;
-		this.loader = new STLLoader().setCrossOrigin('anonymous');
 
 		this.viewerEl = el.querySelector('.viewer');
 		this.reloadEl = el.querySelector('.reload');
@@ -27,21 +13,30 @@ class App {
 		this.dropEl = el.querySelector('.dropzone');
 		this.inputEl = el.querySelector('#file-input');
 
-		this.state = 'drop';
+		this.viewer = new Viewer(this.viewerEl);
+		this.loader = new STLLoader().setCrossOrigin('anonymous');
+
+		this.reloadEl.addEventListener('click', () => {
+			this.viewer.clear();
+		});
 
 		this.inputEl.addEventListener('change', () => {
+			this.dropEl.classList.add('hidden');
+			this.showSpinner();
+
 			this.load(this.inputEl.files[0])
 				.then((geometry) => {
-					this.view(geometry);
+					this.viewer.view(geometry);
+
+					this.hideSpinner();
+					this.viewerEl.classList.remove('hidden');
+					this.reloadEl.classList.remove('hidden');
+					this.showStats();
 				})
 				.catch((error) => this.onError(error));
 		});
 	}
 
-	/**
-	 * Loads a fileset provided by user action.
-	 * @param  {File} file
-	 */
 	load(file) {
 		return new Promise((resolve, reject) => {
 			const fileURL = typeof file === 'string' ? file : URL.createObjectURL(file);
@@ -54,72 +49,34 @@ class App {
 			this.loader.load(
 				fileURL,
 				(geometry) => {
-					if (typeof fileURL === 'object') URL.revokeObjectURL(fileURL);
+					URL.revokeObjectURL(fileURL);
 					resolve(geometry);
 				},
 				(xhr) => {
 					console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
 				},
 				(error) => {
-					console.log(error);
 					reject(error);
 				},
 			);
 		});
 	}
 
-	view(geometry) {
-		if (this.viewer) this.viewer.clear();
-
-		if (!this.viewer) {
-			this.viewer = new Viewer(this.viewerEl);
-		}
-
-		this.reloadEl.addEventListener('click', () => {
-			this.state = 'drop';
-			this.viewer.clear();
-		});
-
-		this.dropEl.classList.add('hidden');
-		this.showSpinner();
-
-		this.hideSpinner();
-		this.viewerEl.classList.remove('hidden');
-		this.reloadEl.classList.remove('hidden');
-
-		this.viewer.view(geometry);
-
-		this.showStats();
-	}
-
-	/**
-	 * @param  {Error} error
-	 */
 	onError(error) {
-		let message = (error || {}).message || error.toString();
+		let message = error.message || error.toString();
 		if (message.match(/ProgressEvent/)) {
-			message = 'Unable to retrieve this file. Check JS console and browser network tab.';
+			message = 'Ошибка при загрузке файла. Попробуйте снова';
 		} else if (message.match(/Unexpected token/)) {
-			message = `Unable to parse file content. Verify that this file is valid. Error: "${message}"`;
+			message = `Ошибка распознавания содержимого. Убедитесь, что файл валиден и не поврежден`;
 		}
 		window.alert(message); // TODO: move to popup
 		console.error(error);
 	}
 
 	showStats() {
-		const widthEl = this.statsEl.querySelector('.stats__item--width');
-		const heightEl = this.statsEl.querySelector('.stats__item--height');
-		const lengthEl = this.statsEl.querySelector('.stats__item--length');
-		const volumeEl = this.statsEl.querySelector('.stats__item--volume');
-
-		widthEl.textContent = this.viewer.sizes.width.toFixed(2);
-		heightEl.textContent = this.viewer.sizes.height.toFixed(2);
-		lengthEl.textContent = this.viewer.sizes.length.toFixed(2);
-		volumeEl.textContent = (
-			this.viewer.sizes.height *
-			this.viewer.sizes.length *
-			this.viewer.sizes.width
-		).toFixed(1);
+		[...this.statsEl.querySelectorAll('.stats__item > span')].forEach((el) => {
+			el.textContent = this.viewer.sizes[el.className].toFixed(1);
+		});
 
 		this.statsEl.classList.remove('hidden');
 	}
@@ -131,6 +88,12 @@ class App {
 	hideSpinner() {
 		this.spinnerEl.classList.add('hidden');
 	}
+}
+
+window.VIEWER = {};
+
+if (!WebGL.isWebGLAvailable()) {
+	console.error('WebGL is not supported in this browser.');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
