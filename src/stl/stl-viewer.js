@@ -12,8 +12,9 @@ import {
 	WebGLRenderer,
 } from 'three';
 
+import WebGL from 'three/addons/capabilities/WebGL.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { settings } from './settings';
+import { settings } from './stl-settings';
 
 Cache.enabled = true;
 
@@ -31,7 +32,7 @@ export class Viewer {
 		this.camera = this.#createCamera();
 		this.scene.add(this.camera);
 
-		this.renderer = window.renderer = this.#createRenderer();
+		this.renderer = this.#createRenderer();
 		this.el.appendChild(this.renderer.domElement);
 
 		this.controls = this.#createControls();
@@ -49,6 +50,10 @@ export class Viewer {
 	}
 
 	#createRenderer() {
+		if (!WebGL.isWebGLAvailable()) {
+			throw new Error('WebGL is not supported in this browser.');
+		}
+
 		const renderer = new WebGLRenderer({ antialias: true });
 
 		renderer.setClearColor(0xcccccc);
@@ -76,8 +81,6 @@ export class Viewer {
 	}
 
 	view(geometry) {
-		window.VIEWER.json = geometry;
-
 		this.controls.reset();
 
 		this.content = new Mesh(geometry, this.material);
@@ -89,8 +92,6 @@ export class Viewer {
 		this.#setLights();
 
 		this.scene.add(this.content);
-
-		window.VIEWER.scene = this.content;
 	}
 
 	#setSizes() {
