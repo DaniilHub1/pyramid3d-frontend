@@ -31,6 +31,7 @@ export class Viewer {
 		this.material = new MeshPhysicalMaterial(settings.material);
 
 		this.camera = this.#createCamera();
+		this.#setLights();
 		this.scene.add(this.camera);
 
 		this.renderer = this.#createRenderer();
@@ -128,8 +129,8 @@ export class Viewer {
 
 		const directLight = new DirectionalLight(color, intensity);
 		directLight.position.set(posX, posY, posZ);
+		
 		this.camera.add(directLight);
-
 		this.scene.add(new HemisphereLight());
 	}
 
@@ -142,7 +143,6 @@ export class Viewer {
 		this.#setSizes(geometry);
 		this.#setCamera();
 		this.#setPosition();
-		this.#setLights();
 
 		this.scene.add(this.content);
 	}
