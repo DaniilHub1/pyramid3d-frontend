@@ -21,6 +21,7 @@ class App {
 		this.loader
 			.load(this.ui.inputEl.files[0])
 			.then((geometry) => {
+				console.log(geometry)
 				this.viewer.view(geometry);
 
 				[...this.ui.statsEl.children].forEach((el) => {

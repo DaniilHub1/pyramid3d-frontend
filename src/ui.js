@@ -34,6 +34,7 @@ export class UI {
 		} else if (action === 'reset') {
 			this.#hide(this.statsEl.wrapper, this.resetEl);
 			this.#show(this.uploadEl);
+			this.inputEl.value = ''
 		} else if (action === 'upload') {
 			this.#hide(this.uploadEl);
 			this.#show(this.spinnerEl);
