@@ -15,6 +15,7 @@ import {
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { settings } from './stl-settings';
+import { calculateVolume } from './stl-volume';
 
 Cache.enabled = true;
 
@@ -81,21 +82,7 @@ export class Viewer {
 		this.prevTime = time;
 	}
 
-	view(geometry) {
-		this.controls.reset();
-
-		this.content = new Mesh(geometry, this.material);
-		this.content.updateMatrixWorld();
-
-		this.#setSizes();
-		this.#setCamera();
-		this.#setPosition();
-		this.#setLights();
-
-		this.scene.add(this.content);
-	}
-
-	#setSizes() {
+	#setSizes(geometry) {
 		const box = new Box3().setFromObject(this.content);
 
 		this.sizes = {
@@ -108,7 +95,7 @@ export class Viewer {
 
 		this.box = box;
 
-		this.sizes.volume = this.sizes.length * this.sizes.width * this.sizes.height;
+		this.sizes.volume = 1 || calculateVolume(geometry); // TODO
 	}
 
 	#setPosition() {
@@ -144,6 +131,20 @@ export class Viewer {
 		this.camera.add(directLight);
 
 		this.scene.add(new HemisphereLight());
+	}
+
+	view(geometry) {
+		this.controls.reset();
+
+		this.content = new Mesh(geometry, this.material);
+		this.content.updateMatrixWorld();
+
+		this.#setSizes(geometry);
+		this.#setCamera();
+		this.#setPosition();
+		this.#setLights();
+
+		this.scene.add(this.content);
 	}
 
 	clear() {
