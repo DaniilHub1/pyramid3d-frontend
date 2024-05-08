@@ -7,8 +7,8 @@ export const settings = {
 		clearcoatRoughness: 0.4,
 	},
 	camera: {
-		fov: (1 * 180) / Math.PI,
-		near: 0.01,
+		fov: 50,
+		near: 0.1,
 		far: 1000,
 	},
 	directLight: {

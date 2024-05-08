@@ -65,11 +65,11 @@ export class Viewer {
 
 	#createControls() {
 		const controls = new OrbitControls(this.camera, this.renderer.domElement);
-		controls.rotateSpeed = 0.28;
-		controls.maxAzimuthAngle = Math.PI; 
-		controls.minAzimuthAngle = Math.PI; 
+		controls.rotateSpeed = 0.5;
 		controls.screenSpacePanning = true;
 		controls.enableZoom = false;
+		controls.target = new Vector3(0, 0, 0);
+		controls.maxDistance = (this.camera.far / 3) * 2;
 
 		return controls;
 	}
@@ -99,57 +99,61 @@ export class Viewer {
 		const box = new Box3().setFromObject(this.content);
 
 		this.sizes = {
-			size: box.getSize(new Vector3()).length(),
+			size: box.getSize(new Vector3()),
 			center: box.getCenter(new Vector3()),
-			length: box.max.x - box.min.x * 0.01,
-			width: box.max.y - box.min.y * 0.01,
-			height: box.max.z - box.min.z * 0.01,
-	};
+			length: box.max.x - box.min.x,
+			width: box.max.y - box.min.y,
+			height: box.max.z - box.min.z,
+		};
+
+		this.box = box;
 
 		this.sizes.volume = this.sizes.length * this.sizes.width * this.sizes.height;
 	}
 
-#setPosition() {
-	const { center } = this.sizes;
+	#setPosition() {
+		const { center } = this.sizes;
 
-	this.content.position.x -= center.x;
-	this.content.position.y -= center.y;
-	this.content.position.z -= center.z;
-}
-
-#setCamera() {
-	const { size, center } = this.sizes;
-
-	this.camera.near = size / 100;
-	this.camera.far = size * 100;
-	this.camera.updateProjectionMatrix();
-
-	this.camera.position.copy(center);
-	this.camera.position.x += size / 2.0;
-	this.camera.position.y += size / 2.0;
-	this.camera.position.z += size / 1.3;
-	this.camera.lookAt(center);
-}
-
-#setLights() {
-	const { color, intensity, position } = settings.directLight;
-	const [posX, posY, posZ] = position;
-
-	const directLight = new DirectionalLight(color, intensity);
-	directLight.position.set(posX, posY, posZ);
-	this.camera.add(directLight);
-
-	this.scene.add(new HemisphereLight());
-}
-
-clear() {
-	if (!this.content) {
-		return;
+		this.content.position.x -= center.x;
+		this.content.position.y -= center.y;
+		this.content.position.z -= center.z;
 	}
 
-	this.scene.remove(this.content);
-	this.content.traverse((node) => {
-		node.geometry?.dispose();
-	});
-}
+	#setCamera() {
+		const { size } = this.sizes;
+
+		const fov = this.camera.fov * (Math.PI / 180);
+		const fovh = 2 * Math.atan(Math.tan(fov / 2) * this.camera.aspect);
+		const dx = size.z / 2 + Math.abs(size.x / 2 / Math.tan(fovh / 2));
+		const dy = size.z / 2 + Math.abs(size.y / 2 / Math.tan(fov / 2));
+		const cameraZ = Math.max(dx, dy) * 1.25;
+		const minZ = this.box.min.z;
+		const cameraToFarEdge = minZ < 0 ? -minZ + cameraZ : cameraZ - minZ;
+
+		this.camera.position.set(0, 0, cameraZ);
+		this.camera.far = cameraToFarEdge * 3;
+		this.camera.updateProjectionMatrix();
+	}
+
+	#setLights() {
+		const { color, intensity, position } = settings.directLight;
+		const [posX, posY, posZ] = position;
+
+		const directLight = new DirectionalLight(color, intensity);
+		directLight.position.set(posX, posY, posZ);
+		this.camera.add(directLight);
+
+		this.scene.add(new HemisphereLight());
+	}
+
+	clear() {
+		if (!this.content) {
+			return;
+		}
+
+		this.scene.remove(this.content);
+		this.content.traverse((node) => {
+			node.geometry?.dispose();
+		});
+	}
 }

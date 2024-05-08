@@ -21,11 +21,14 @@ class App {
 		this.loader
 			.load(this.ui.inputEl.files[0])
 			.then((geometry) => {
-				console.log(geometry)
+				console.log(geometry);
 				this.viewer.view(geometry);
 
 				[...this.ui.statsEl.children].forEach((el) => {
-					el.textContent = this.viewer.sizes[el.className].toFixed(1);
+					el.textContent =
+						el.className === 'volume'
+							? (this.viewer.sizes[el.className] * 0.001).toFixed(2)
+							: (this.viewer.sizes[el.className] * 0.1).toFixed(2);
 				});
 
 				this.ui.set('view');
